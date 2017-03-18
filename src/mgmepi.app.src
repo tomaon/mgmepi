@@ -4,7 +4,7 @@
   mgmepi,
   [
    {description, "MySQL Cluster Management API (mgmapi) for Erlang"},
-   {vsn, "0.8.1"},
+   {vsn, "0.8.2"},
    {registered, [mgmepi_sup]},
    {included_applications, [baseline]},
    {applications, [kernel, stdlib]},
@@ -14,7 +14,7 @@
                     ]},
           {options, [
                      {active, false},
-                     {buffer, 326640},
+                     {buffer, 391968},
                      {keepalive, true},
                      {mode, binary},
                      {packet, raw},
