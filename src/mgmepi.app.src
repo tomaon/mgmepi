@@ -1,0 +1,32 @@
+%% -*- erlang -*-
+{
+  application,
+  mgmepi,
+  [
+   {description, "MySQL Cluster Management API (mgmapi) for Erlang"},
+   {vsn, "0.8.1"},
+   {registered, [mgmepi_sup]},
+   {included_applications, [baseline]},
+   {applications, [kernel, stdlib]},
+   {env, [
+          {connect, [
+                     "localhost"
+                    ]},
+          {options, [
+                     {active, false},
+                     {buffer, 326640},
+                     {keepalive, true},
+                     {mode, binary},
+                     {packet, raw},
+                     {recbuf, 326640},
+                     {sndbuf, 65328}
+                    ]},
+          {timeout, 3000}
+         ]},
+   {mod, {mgmepi_app, []}},
+
+   {maintainers, ["Tomohiko AONO"]},
+   {licenses, ["Apache-2.0"]},
+   {links, [{"Github", "https://github.com/tomaon/mgmepi"}]}
+  ]
+}.

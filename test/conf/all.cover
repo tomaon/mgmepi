@@ -1,0 +1,14 @@
+%% -*- erlang -*-
+{incl_mods, [
+             mgmepi,
+             mgmepi_app,
+             mgmepi_backup,
+             mgmepi_client,
+             mgmepi_config,
+             mgmepi_event,
+             mgmepi_log,
+             mgmepi_node,
+             mgmepi_nodegroup,
+             mgmepi_status,
+             mgmepi_util
+            ]}.
