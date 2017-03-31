@@ -3,6 +3,8 @@
 
  REBAR ?= ./rebar3
 
+ APP := $(notdir $(realpath .))
+
  ENV  =
  ENV += ERL_FLAGS="+A 10"
  ENV += REBAR_CONFIG=rebar3.config
@@ -52,7 +54,7 @@ elvis:
 
 #
 n%: compile
-	$(ENV) ERL_LIBS=$(WORK)/test/lib erl -sname $@ -config examples/conf/$@ -s baseline_sample
+	$(ENV) ERL_LIBS=$(WORK)/test/lib erl -sname $@ -config examples/conf/$@ -s $(APP)
 
 x%: compile
 	$(ENV) ERL_LIBS=$(WORK)/test/lib escript examples/escript/$@.escript

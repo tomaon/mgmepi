@@ -4,7 +4,7 @@
   mgmepi,
   [
    {description, "MySQL Cluster Management API (mgmapi) for Erlang"},
-   {vsn, "0.8.2"},
+   {vsn, "0.8.3"},
    {registered, [mgmepi_sup]},
    {included_applications, [baseline]},
    {applications, [kernel, stdlib]},
@@ -17,9 +17,9 @@
                      {buffer, 391968},
                      {keepalive, true},
                      {mode, binary},
-                     {packet, raw},
-                     {recbuf, 326640},
-                     {sndbuf, 65328}
+                     {packet, raw}
+                   % {recbuf, 326640}
+                   % {sndbuf, 65328}
                     ]},
           {timeout, 3000}
          ]},
