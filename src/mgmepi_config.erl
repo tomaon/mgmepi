@@ -85,32 +85,45 @@ get_config(#mgmepi{worker=W}, Timeout) ->
 
 
 -spec get_connection_config(config(), integer()) -> [config()]. % config()
-get_connection_config(Config, Node)
-  when ?IS_CONFIG(Config), ?IS_NODE_ID(Node) ->
+get_connection_config(Config, NodeId)
+  when ?IS_CONFIG(Config), ?IS_NODE_ID(NodeId) ->
     F = fun (L) ->
-                lists:member({?CFG_CONNECTION_NODE_1, Node}, L)
-                    orelse lists:member({?CFG_CONNECTION_NODE_2, Node}, L)
+                get_connection_config(L,
+                                      lists:member({?CFG_CONNECTION_NODE_1, NodeId}, L),
+                                      lists:member({?CFG_CONNECTION_NODE_2, NodeId}, L))
         end,
-    lists:filter(F, find(Config, [0, ?CFG_SECTION_CONNECTION])).
+    lists:filtermap(F, find(Config, [0, ?CFG_SECTION_CONNECTION])).
+
+get_connection_config(_Config, false, false) ->
+    false;
+get_connection_config(_Config, true, false) ->
+    true;
+get_connection_config(Config, false, true) ->
+    {true, lists:map(fun ({?CFG_CONNECTION_NODE_1,     V}) -> {?CFG_CONNECTION_NODE_2,     V};
+                         ({?CFG_CONNECTION_NODE_2,     V}) -> {?CFG_CONNECTION_NODE_1,     V};
+                         ({?CFG_CONNECTION_HOSTNAME_1, V}) -> {?CFG_CONNECTION_HOSTNAME_2, V};
+                         ({?CFG_CONNECTION_HOSTNAME_2, V}) -> {?CFG_CONNECTION_HOSTNAME_1, V};
+                         (Other)                           -> Other
+                     end, Config)}.
 
 -spec debug_connection_config(config(), node_id()) -> [config()]. % config()
-debug_connection_config(Config, Node) ->
+debug_connection_config(Config, NodeId) ->
     [ combine(E, ?CFG_SECTION_CONNECTION)
-      || E <- get_connection_config(Config, Node) ].
+      || E <- get_connection_config(Config, NodeId) ].
 
 
 -spec get_node_config(config(), integer()) -> [config()]. % config()
-get_node_config(Config, Node)
-  when ?IS_CONFIG(Config), ?IS_NODE_ID(Node) ->
+get_node_config(Config, NodeId)
+  when ?IS_CONFIG(Config), ?IS_NODE_ID(NodeId) ->
     F = fun (L) ->
-                lists:member({?CFG_NODE_ID, Node}, L)
+                lists:member({?CFG_NODE_ID, NodeId}, L)
         end,
     lists:filter(F, find(Config, [0, ?CFG_SECTION_NODE])).
 
 -spec debug_node_config(config(), node_id()) -> [config()]. % config()
-debug_node_config(Config, Node) ->
+debug_node_config(Config, NodeId) ->
     [ combine(E, ?CFG_SECTION_NODE) ||
-        E <- get_node_config(Config, Node) ].
+        E <- get_node_config(Config, NodeId) ].
 
 
 -spec get_nodes_config(config(), node_type()) -> [config()]. % config()

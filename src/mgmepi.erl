@@ -11,13 +11,16 @@
 -export([set_timeout/2]).
 -export([check_connection/1, check_connection/2]).
 -export([get_version/1, get_version/2]).
--export([alloc_node_id/1, alloc_node_id/2, alloc_node_id/3]).
+-export([alloc_node_id/2, alloc_node_id/3, alloc_node_id/4]).
 -export([free_node_id/1, free_node_id/2]).
 
 %% -- private --
 -export([worker/1]).
 
 %% -- internal --
+-define(IS_NAME(T), (is_binary(T) andalso size(T) > 0)).
+
+-type(name() :: binary()).
 -type(reason() :: baseline:reason()).
 
 %% == public ==
@@ -101,17 +104,21 @@ get_version(#mgmepi{worker=W}, Timeout)
     end.
 
 
--spec alloc_node_id(mgmepi()) -> {ok, node_id()}|{error, _}.
-alloc_node_id(Mgmepi) ->
-    alloc_node_id(Mgmepi, 0).
+-spec alloc_node_id(mgmepi(), name()) ->
+                           {ok, node_id()}|{error, _}.
+alloc_node_id(Mgmepi, Name) ->
+    alloc_node_id(Mgmepi, Name, 0).
 
--spec alloc_node_id(mgmepi(), 0|node_id()) -> {ok, node_id()}|{error, _}.
-alloc_node_id(#mgmepi{timeout=T}=M, NodeId) ->
-    alloc_node_id(M, NodeId, T).
+-spec alloc_node_id(mgmepi(), name(), 0|node_id()) ->
+                           {ok, node_id()}|{error, _}.
+alloc_node_id(#mgmepi{timeout=T}=M, Name, NodeId) ->
+    alloc_node_id(M, Name, NodeId, T).
 
--spec alloc_node_id(mgmepi(), 0|node_id(), timeout()) -> {ok, node_id()}|{error, _}.
-alloc_node_id(#mgmepi{worker=W}, NodeId, Timeout)
-  when (NodeId =:= 0 orelse ?IS_NODE_ID(NodeId)), ?IS_TIMEOUT(Timeout) ->
+-spec alloc_node_id(mgmepi(), name(), 0|node_id(), timeout()) ->
+                           {ok, node_id()}|{error, _}.
+alloc_node_id(#mgmepi{worker=W}, Name, NodeId, Timeout)
+  when (NodeId =:= 0 orelse ?IS_NODE_ID(NodeId)),
+       ?IS_NAME(Name), ?IS_TIMEOUT(Timeout) ->
     %%
     %% ~/src/mgmapi/mgmapi.cpp: ndb_mgm_alloc_nodeid/4
     %%
@@ -125,7 +132,7 @@ alloc_node_id(#mgmepi{worker=W}, NodeId, Timeout)
                {<<"password">>, <<"mysqld">>},
                {<<"public key">>, <<"a public key">>},
                {<<"endian">>, atom_to_binary(baseline_app:endianness(), latin1)},
-               {<<"name">>, <<"mgmepi">>},
+               {<<"name">>, Name},
                {<<"log_event">>, boolean_to_binary(true)}
               ],
               [

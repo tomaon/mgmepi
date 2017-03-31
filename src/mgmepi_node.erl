@@ -221,19 +221,19 @@ stop_all(#mgmepi{worker=W}, Types, Abort, Timeout)
 
 -spec restart(mgmepi(), boolean(), boolean(), boolean(),
               boolean(), [node_id()]) -> {ok, integer()}|{error, _}.
-restart(#mgmepi{timeout=T}=M, Abort, Initial, NoStart, Force, Nodes) ->
-    restart(M, Abort, Initial, NoStart, Force, Nodes, T).
+restart(#mgmepi{timeout=T}=M, Abort, Initial, NoStart, Force, NodeIds) ->
+    restart(M, Abort, Initial, NoStart, Force, NodeIds, T).
 
 -spec restart(mgmepi(), boolean(), boolean(), boolean(),
               boolean(), [node_id()], timeout()) -> {ok, integer()}|{error, _}.
-restart(#mgmepi{worker=W}, Abort, Initial, NoStart, Force, Nodes, Timeout) ->
+restart(#mgmepi{worker=W}, Abort, Initial, NoStart, Force, NodeIds, Timeout) ->
     %%
     %% ~/src/mgmapi/mgmapi.cpp: ndb_mgm_restart4/8
     %%
     case call(W,
               <<"restart node v2">>,
               [
-               {<<"node">>, implode(fun integer_to_binary/1, Nodes, <<" ">>)},
+               {<<"node">>, implode(fun integer_to_binary/1, NodeIds, <<" ">>)},
                {<<"abort">>, boolean_to_binary(Abort)},
                {<<"initialstart">>, boolean_to_binary(Initial)},
                {<<"nostart">>, boolean_to_binary(NoStart)},

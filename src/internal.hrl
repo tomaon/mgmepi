@@ -7,8 +7,6 @@
 %%nclude_lib("../.rebar3/default/lib/baseline/include/baseline.hrl").
 
 %% == define ==
--define(NDB_VERSION_ID, 459523). % 0x070303
-
 -define(FS, ": ").
 -define(LS, $\n).
 

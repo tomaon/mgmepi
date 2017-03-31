@@ -4,7 +4,6 @@
 %% == define ==
 
 %% -- ~/include/kernel/ndb_limits.h --
-
 -define(MAX_NODES_ID, 255).
 
 %% -- ~/include/mgmapi/mgmapi.h --
@@ -18,7 +17,6 @@
 -define(NDB_MGM_NODE_TYPE_MAX,      2). % 3
 
 %% -- ~/include/mgmapi/mgmapi_config_parameters.h --
-
 -define(CFG_SYS_NAME,                                        3).
 -define(CFG_SYS_PRIMARY_MGM_NODE,                            1).
 -define(CFG_SYS_CONFIG_GENERATION,                           2).
@@ -281,6 +279,8 @@
 -define(NDB_MGM_EVENT_CATEGORY_SCHEMA,       262).
 
 %% -- other --
+-define(MYSQL_VERSION_ID, 329495). % 0x050717
+-define(NDB_VERSION_ID,   460037). % 0x070505
 
 -define(IS_CONFIG(T), (is_list(T))).
 

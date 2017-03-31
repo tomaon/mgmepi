@@ -16,7 +16,7 @@ start(StartType, []) ->
                                           {local, mgmepi_sup},
                                           {
                                             {one_for_one, 10, timer:seconds(1)},
-                                            get_childspecs(get_all_env())
+                                            get_childspecs()
                                           }
                                          ]}
                                   ]).
@@ -26,11 +26,8 @@ stop(State) ->
 
 %% == internal ==
 
-get_all_env() ->
-    application:get_all_env(get_application()).
-
-get_application() ->
-    element(2, application:get_application()).
+get_childspecs() ->
+    get_childspecs(baseline_app:get_all_env()).
 
 get_childspecs(Args) ->
     [ get_childspec(E, Args) ||

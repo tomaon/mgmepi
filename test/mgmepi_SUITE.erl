@@ -79,7 +79,7 @@ get_version_test(Config) ->
 
 
 alloc_node_id_test(Config) -> % << mgmepi_event_SUITE
-    {ok, NodeId}= test(Config, alloc_node_id, []),
+    {ok, NodeId}= test(Config, alloc_node_id, [<<"mgmepi">>]),
     [{node_id, NodeId}|Config].
 
 free_node_id_test(Config) -> % << mgmepi_event_SUITE

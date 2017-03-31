@@ -7,7 +7,7 @@
 %% -- private --
 -export([start_link/1]).
 -export([call/4, call/5, call/6]).
--export([recv/2, send/4]).
+-export([recv/2]).
 
 %% -- behaviour: gen_server --
 -behaviour(gen_server).
@@ -33,13 +33,18 @@
 start_link(Args) ->
     case gen_server:start_link(?MODULE, [], []) of
         {ok, Pid} ->
-            case gen_server:call(Pid, {setup, Args}, infinity) of
+            try gen_server:call(Pid, {setup, Args}, infinity) of
                 ok ->
                     {ok, Pid};
                 {error, Reason} ->
                     ok = gen_server:stop(Pid),
                     {error, Reason}
-            end
+            catch
+                exit:Reason ->
+                    {error, Reason}
+            end;
+        {error, Reason} ->
+            {error, Reason}
     end.
 
 
@@ -56,29 +61,24 @@ call(Pid, Cmd, Args, Params, Timeout) ->
 -spec call(pid(), binary(), [arg()], [param()], pattern(), timeout()) ->
                   {ok, [matched()], [parsed()]}|{error, _}.
 call(Pid, Cmd, Args, Params, Pattern, Timeout) ->
-    Ref = send(Pid, Cmd, Args, Pattern),
-    receive
-        {Ref, Binary} ->
-            true = demonitor(Ref, [flush]),
-            parse(Binary, Params);
-        {'DOWN', Ref, _, _, Reason} ->
+    try gen_server:call(Pid, {send, to_packet(Cmd, Args), Pattern}, Timeout) of
+        Binary ->
+            parse(Binary, Params)
+    catch
+        exit:Reason ->
             {error, Reason}
-    after
-        Timeout ->
-            true = demonitor(Ref, [flush]),
-            {error, timeout}
     end.
 
 
 -spec recv(pid(), pos_integer()) -> {ok, binary()}|{error, _}.
 recv(Pid, Size) ->
-    gen_server:call(Pid, {recv, Size}).
-
--spec send(pid(), binary(), [arg()], pattern()) -> reference().
-send(Pid, Cmd, Args, Pattern) ->
-    Ref = monitor(process, Pid),
-    ok = gen_server:cast(Pid, {send, to_packet(Cmd, Args), Pattern, {self(), Ref}}),
-    Ref.
+    try gen_server:call(Pid, {recv, Size}) of
+        Binary ->
+            {ok, Binary}
+    catch
+        exit:Reason ->
+            {error, Reason}
+    end.
 
 %% == behaviour: gen_server ==
 
@@ -91,43 +91,44 @@ terminate(_Reason, State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-handle_call({recv, Size}, _From, #state{socket=S, rest=R}=X) ->
-    case gen_tcp:recv(S, Size - size(R)) of
-        {ok, Packet} ->
-            {reply, {ok, <<R/binary, Packet/binary>>}, X#state{rest = <<>>}};
-        {error, Reason} ->
-            {stop, {error, Reason}, X}
-    end;
-handle_call({setup, Args}, _From, #state{socket=undefined}=X) ->
-    setup(Args, X).
-
-handle_cast({send, Packet, undefined, From}, #state{socket=S, event=false}=X) ->
+handle_call({send, Packet, undefined}, From, #state{socket=S, event=false}=X) ->
     case ok =:= inet:setopts(S, [{active, once}])
         andalso gen_tcp:send(S, Packet) of
         ok ->
             {noreply, X#state{from = From}};
         {error, Reason} ->
-            {stop, {error, Reason}, X}
+            {stop, Reason, X}
     end;
-handle_cast({send, Packet, Pattern, From}, #state{socket=S}=X) ->
-    case ok =:= inet:setopts(S, [{active, true}])
+handle_call({send, Packet, Pattern}, From, #state{socket=S}=X)
+  when Pattern =/= undefined ->
+    case ok =:= inet:setopts(S, [{active, true}]) % "listen event", "end session"
         andalso gen_tcp:send(S, Packet) of
         ok ->
             {noreply, X#state{event = true, pattern = Pattern, from = From}};
         {error, Reason} ->
-            {stop, {error, Reason}, X}
-    end.
+            {stop, Reason, X}
+    end;
+handle_call({recv, Size}, _From, #state{socket=S, rest=R}=X) ->
+    case gen_tcp:recv(S, Size - size(R)) of
+        {ok, Packet} ->
+            {reply, <<R/binary, Packet/binary>>, X#state{rest = <<>>}};
+        {error, Reason} ->
+            {stop, Reason, X}
+    end;
+handle_call({setup, Args}, _From, State) ->
+    setup(Args, State).
+
+handle_cast(_Request, State) ->
+    {stop, enosys, State}.
 
 handle_info({tcp, S, Data}, #state{socket=S, from=F, pattern=P, rest=R}=X) ->
-    {Replies, Rest} = split(<<R/binary, Data/binary>>, P),
+    {Replies, Rest} = baseline_binary:split(<<R/binary, Data/binary>>, P),
     _ = [ gen_server:reply(F, E) || E <- Replies ],
     {noreply, X#state{rest = Rest}};
-handle_info({tcp_closed, S}, #state{socket=S}=X) ->
-    {stop, tcp_closed, X#state{socket = undefined}};
-handle_info({tcp_error, S}, #state{socket=S}=X) ->
-    {stop, tcp_error, X#state{socket = undefined}};
-handle_info({'EXIT', S, normal}, #state{socket=S}=X) ->
-    {stop, port_closed, X#state{socket = undefined}};
+handle_info({Reason, S}, #state{socket=S}=X) ->
+    {stop, Reason, X#state{socket = undefined}};
+handle_info({'EXIT', S, Reason}, #state{socket=S}=X) ->
+    {stop, Reason, X#state{socket = undefined}};
 handle_info({'EXIT', _Pid, Reason}, State) ->
     {stop, Reason, State}.
 
@@ -153,19 +154,6 @@ setup(Args, #state{socket=undefined}=X) ->
             {reply, {error, Reason}, X}
     end.
 
-
-split(Binary, Pattern) ->
-    split(Binary, 0, [], binary:matches(Binary, Pattern)).
-
-split(Binary, Start, List, []) ->
-    {lists:reverse(List), binary_part(Binary, Start, size(Binary) - Start)};
-split(Binary, Start, List, [{S, L}|T]) ->
-    case binary_part(Binary, Start, S - Start) of
-        <<>> ->
-            split(Binary, S + L, List, T);
-        Part ->
-            split(Binary, S + L, [Part|List], T)
-    end.
 
 to_packet(Cmd, []) ->
     <<Cmd/binary, ?LS, ?LS>>;
