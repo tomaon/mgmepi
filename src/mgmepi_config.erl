@@ -169,7 +169,7 @@ find(Config, List) ->
 find(Config, Key, []) ->
     case lists:keyfind(Key, 1, Config) of
         {Key, List} ->
-            [ proplists:get_value(N, Config) || {_, N} <- List ] % TODO
+            [ baseline_lists:get_value(N, Config) || {_, N} <- List ] % TODO
     end;
 find(Config, List, [H|T]) ->
     case lists:keyfind(H, 1, List) of
