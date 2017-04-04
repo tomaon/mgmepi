@@ -5,7 +5,7 @@
 -import(mgmepi_util, [parse/2]).
 
 %% -- private --
--export([start_link/1]).
+-export([start_link/2]).
 -export([call/4, call/5, call/6]).
 -export([recv/2]).
 
@@ -29,23 +29,9 @@
 
 %% == private ==
 
--spec start_link([term()]) -> {ok, pid()}|{error, _}.
-start_link(Args) ->
-    case gen_server:start_link(?MODULE, [], []) of
-        {ok, Pid} ->
-            try gen_server:call(Pid, {setup, Args}, infinity) of
-                ok ->
-                    {ok, Pid};
-                {error, Reason} ->
-                    ok = gen_server:stop(Pid),
-                    {error, Reason}
-            catch
-                exit:Reason ->
-                    {error, Reason}
-            end;
-        {error, Reason} ->
-            {error, Reason}
-    end.
+-spec start_link([term()], [term()]) -> {ok, pid()}|{error, _}.
+start_link(Args, Options) ->
+    gen_server:start_link(?MODULE, Args, Options).
 
 
 -spec call(pid(), binary(), [param()], timeout()) ->
@@ -114,9 +100,7 @@ handle_call({recv, Size}, _From, #state{socket=S, rest=R}=X) ->
             {reply, <<R/binary, Packet/binary>>, X#state{rest = <<>>}};
         {error, Reason} ->
             {stop, Reason, X}
-    end;
-handle_call({setup, Args}, _From, State) ->
-    setup(Args, State).
+    end.
 
 handle_cast(_Request, State) ->
     {stop, enosys, State}.
@@ -138,20 +122,17 @@ cleanup(#state{socket=S}=X)
   when S =/= undefined ->
     ok = gen_tcp:close(S),
     cleanup(X#state{socket = undefined});
-cleanup(#state{}) ->
+cleanup(_) ->
     baseline:flush().
 
-setup([]) ->
-    false = process_flag(trap_exit, true),
-    {ok, #state{event = false,
-                pattern = binary:compile_pattern(<<?LS, ?LS>>), rest = <<>>}}.
-
-setup(Args, #state{socket=undefined}=X) ->
+setup(Args) ->
     case apply(gen_tcp, connect, Args) of
         {ok, Socket} ->
-            {reply, ok, X#state{socket = Socket}};
+            false = process_flag(trap_exit, true),
+            {ok, #state{socket = Socket, event = false,
+                        pattern = binary:compile_pattern(<<?LS, ?LS>>), rest = <<>>}};
         {error, Reason} ->
-            {reply, {error, Reason}, X}
+            {stop, Reason}
     end.
 
 

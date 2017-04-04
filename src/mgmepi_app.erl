@@ -15,7 +15,7 @@ start(StartType, []) ->
                                    {sup, [
                                           {local, mgmepi_sup},
                                           {
-                                            {one_for_one, 10, timer:seconds(1)},
+                                            {one_for_one, 10, 10},
                                             get_childspecs()
                                           }
                                          ]}
@@ -29,11 +29,11 @@ stop(State) ->
 get_childspecs() ->
     get_childspecs(baseline_app:get_all_env()).
 
-get_childspecs(Args) ->
-    [ get_childspec(E, Args) ||
-        E <- proplists:get_value(connect, Args, [{"localhost", 1186}]) ].
+get_childspecs(Env) ->
+    [ get_childspec(E, Env) ||
+        E <- get_value(connect, Env, [{"localhost", 1186}]) ].
 
-get_childspec({A, P}, Args)
+get_childspec({A, P}, Env)
   when is_list(A), is_integer(P) ->
     {
       {A, P},
@@ -43,7 +43,7 @@ get_childspec({A, P}, Args)
         [
          baseline_app,
          {
-           {simple_one_for_one, 10, timer:seconds(5)},
+           {simple_one_for_one, 10, 10},
            [
             {
               undefined,
@@ -54,13 +54,16 @@ get_childspec({A, P}, Args)
                  [
                   A,
                   P,
-                  proplists:get_value(options, Args, []),
-                  proplists:get_value(timeout, Args, timer:seconds(3))
+                  get_value(options, Env, []),
+                  get_value(timeout, Env, 5000)
+                 ],
+                 [
+                  {spawn_opt, get_value(spawn_opt, Env, [])}
                  ]
                 ]
               },
               temporary,
-              timer:seconds(5),
+              5000,
               worker,
               []
             }
@@ -69,10 +72,14 @@ get_childspec({A, P}, Args)
         ]
       },
       permanent,
-      timer:seconds(5),
+      5000,
       supervisor,
       []
     };
 get_childspec(A, Args)
   when is_list(A) ->
     get_childspec({A, 1186}, Args).
+
+
+get_value(Key, List, Default) ->
+    baseline_lists:get_value(Key, List, Default).
