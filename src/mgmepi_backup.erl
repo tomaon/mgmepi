@@ -12,7 +12,7 @@
 %% -- internal --
 -define(IS_COMPLETED(T),    (is_integer(T) andalso (T >= 0) andalso (T =< 2))).
 -define(IS_BACKUP_ID(T),    (is_integer(T) andalso (T >= 0))).
--define(IS_BACKUP_POINT(T), (is_integer(T) andalso (T >= 0))). % TODO
+-define(IS_BACKUP_POINT(T), (is_integer(T) andalso (T >= 0))).
 
 -type(completed()    :: 0 .. 2).
 -type(backup_id()    :: non_neg_integer()).
@@ -25,8 +25,8 @@
 
 %% == public ==
 
--spec start_backup(mgmepi(), completed(), backup_id(), backup_point()) ->
-                          {ok, backup_id()}|{error, _}.
+-spec start_backup(mgmepi(), completed(), backup_id(), backup_point())
+                  -> {ok, backup_id()}|{error, _}.
 start_backup(Mgmepi, 2, BackupId, BackupPoint) ->
     start_backup(Mgmepi, 2, BackupId, BackupPoint, timer:hours(48));
 start_backup(Mgmepi, 1, BackupId, BackupPoint) ->
@@ -34,8 +34,8 @@ start_backup(Mgmepi, 1, BackupId, BackupPoint) ->
 start_backup(#mgmepi{timeout=T}=M, 0, BackupId, BackupPoint) ->
     start_backup(M, 0, BackupId, BackupPoint, T).
 
--spec start_backup(mgmepi(), completed(), backup_id(), backup_point(), timeout()) ->
-                          {ok, backup_id()}|{error, _}.
+-spec start_backup(mgmepi(), completed(), backup_id(), backup_point(), timeout())
+                  -> {ok, backup_id()}|{error, _}.
 start_backup(#mgmepi{worker=W}, Completed, BackupId, BackupPoint, Timeout)
   when ?IS_COMPLETED(Completed), ?IS_BACKUP_ID(BackupId),
        ?IS_BACKUP_POINT(BackupPoint), ?IS_TIMEOUT(Timeout)->

@@ -93,11 +93,11 @@ exit_single_user(#mgmepi{worker=W}, Timeout)
     end.
 
 
--spec start(mgmepi(), [node_id()]) -> {ok, integer()}|{error, _}.
+-spec start(mgmepi(), [node_id()]) -> {ok, non_neg_integer()}|{error, _}.
 start(#mgmepi{timeout=T}=M, NodeIds) ->
-    start(M, NodeIds, T, 0).
+    start(M, NodeIds, T).
 
--spec start(mgmepi(), [node_id()], timeout()) -> {ok, integer()}|{error, _}.
+-spec start(mgmepi(), [node_id()], timeout()) -> {ok, non_neg_integer()}|{error, _}.
 start(#mgmepi{worker=W}, NodeIds, Timeout)
   when is_list(NodeIds), ?IS_TIMEOUT(Timeout) ->
     start(W, NodeIds, Timeout, 0).
@@ -121,7 +121,7 @@ start(Pid, [H|T], Timeout, Started) ->
         {ok, List, []} ->
             case get_result(List) of
                 ok ->
-                    start(Pid, T, Timeout, Started+1);
+                    start(Pid, T, Timeout, Started + 1);
                 {error, Reason} ->
                     {error, Reason}
             end;
@@ -144,7 +144,7 @@ start_all(#mgmepi{worker=W}, Timeout)
               [
                {<<"start reply">>, null, mandatory},
                {<<"result">>, string, mandatory},
-               {<<"started">>, integer, optional}
+               {<<"started">>, integer, mandatory}
               ],
               Timeout) of
         {ok, List, []} ->
@@ -154,13 +154,13 @@ start_all(#mgmepi{worker=W}, Timeout)
     end.
 
 
--spec stop(mgmepi(), [node_id()], boolean(), boolean()) ->
-                  {ok, integer()}|{error, _}.
+-spec stop(mgmepi(), [node_id()], boolean(), boolean())
+          -> {ok, integer()}|{error, _}.
 stop(#mgmepi{timeout=T}=M, NodeIds, Abort, Force) ->
     stop(M, NodeIds, Abort, Force, T).
 
--spec stop(mgmepi(), [node_id()], boolean(), boolean(), timeout()) ->
-                  {ok, integer()}|{error, _}.
+-spec stop(mgmepi(), [node_id()], boolean(), boolean(), timeout())
+          -> {ok, integer()}|{error, _}.
 stop(#mgmepi{worker=W}, NodeIds, Abort, Force, Timeout)
   when is_list(NodeIds), is_boolean(Abort), is_boolean(Force), ?IS_TIMEOUT(Timeout) ->
     %%
@@ -175,9 +175,10 @@ stop(#mgmepi{worker=W}, NodeIds, Abort, Force, Timeout)
               ],
               [
                {<<"stop reply">>, null, mandatory},
-               {<<"stopped">>, integer, optional},
-               {<<"result">>, string, mandatory},
-               {<<"disconnect">>, integer, mandatory}
+               {<<"result">>, string, optional},
+               {<<"stopped">>, integer, mandatory},
+               {<<"disconnect">>, integer, mandatory},
+               {<<"result">>, string, optional}
               ],
               Timeout) of
         {ok, List, []} ->
@@ -186,11 +187,13 @@ stop(#mgmepi{worker=W}, NodeIds, Abort, Force, Timeout)
             {error, Reason}
     end.
 
--spec stop_all(mgmepi(), [integer()], boolean()) -> {ok, integer()}|{error, _}.
+-spec stop_all(mgmepi(), [integer()], boolean())
+              -> {ok, integer()}|{error, _}.
 stop_all(#mgmepi{timeout=T}=M, Types, Abort) ->
     stop_all(M, Types, Abort, T).
 
--spec stop_all(mgmepi(), [integer()], boolean(), timeout()) -> {ok, integer()}|{error, _}.
+-spec stop_all(mgmepi(), [integer()], boolean(), timeout())
+              -> {ok, integer()}|{error, _}.
 stop_all(#mgmepi{worker=W}, Types, Abort, Timeout)
   when is_list(Types), is_boolean(Abort), ?IS_TIMEOUT(Timeout) ->
     %%
@@ -207,8 +210,8 @@ stop_all(#mgmepi{worker=W}, Types, Abort, Timeout)
               ],
               [
                {<<"stop reply">>, null, mandatory},
-               {<<"stopped">>, integer, optional},
                {<<"result">>, string, mandatory},
+               {<<"stopped">>, integer, mandatory},
                {<<"disconnect">>, integer, mandatory}
               ],
               Timeout) of
@@ -219,14 +222,14 @@ stop_all(#mgmepi{worker=W}, Types, Abort, Timeout)
     end.
 
 
--spec restart(mgmepi(), boolean(), boolean(), boolean(),
-              boolean(), [node_id()]) -> {ok, integer()}|{error, _}.
-restart(#mgmepi{timeout=T}=M, Abort, Initial, NoStart, Force, NodeIds) ->
-    restart(M, Abort, Initial, NoStart, Force, NodeIds, T).
+-spec restart(mgmepi(), [node_id()], boolean(), boolean(), boolean(), boolean())
+             -> {ok, integer()}|{error, _}.
+restart(#mgmepi{timeout=T}=M, NodeIds, Abort, Initial, NoStart, Force) ->
+    restart(M, NodeIds, Abort, Initial, NoStart, Force, T).
 
--spec restart(mgmepi(), boolean(), boolean(), boolean(),
-              boolean(), [node_id()], timeout()) -> {ok, integer()}|{error, _}.
-restart(#mgmepi{worker=W}, Abort, Initial, NoStart, Force, NodeIds, Timeout) ->
+-spec restart(mgmepi(), [node_id()], boolean(), boolean(), boolean(), boolean(), timeout())
+             -> {ok, integer()}|{error, _}.
+restart(#mgmepi{worker=W}, NodeIds, Abort, Initial, NoStart, Force, Timeout) ->
     %%
     %% ~/src/mgmapi/mgmapi.cpp: ndb_mgm_restart4/8
     %%
@@ -242,8 +245,8 @@ restart(#mgmepi{worker=W}, Abort, Initial, NoStart, Force, NodeIds, Timeout) ->
               [
                {<<"restart reply">>, null, mandatory},
                {<<"result">>, string, mandatory},
-               {<<"restarted">>, integer, optional},
-               {<<"disconnect">>, integer, optional}
+               {<<"restarted">>, integer, mandatory},
+               {<<"disconnect">>, integer, mandatory}
               ],
               Timeout) of
         {ok, List, []} ->
@@ -252,13 +255,13 @@ restart(#mgmepi{worker=W}, Abort, Initial, NoStart, Force, NodeIds, Timeout) ->
             {error, Reason}
     end.
 
--spec restart_all(mgmepi(), boolean(), boolean(), boolean()) ->
-                         {ok, integer()}|{error, _}.
+-spec restart_all(mgmepi(), boolean(), boolean(), boolean())
+                 -> {ok, integer()}|{error, _}.
 restart_all(#mgmepi{timeout=T}=M, Abort, Initial, NoStart) ->
     restart_all(M, Abort, Initial, NoStart, T).
 
--spec restart_all(mgmepi(), boolean(), boolean(), boolean(), timeout()) ->
-                         {ok, integer()}|{error, _}.
+-spec restart_all(mgmepi(), boolean(), boolean(), boolean(), timeout())
+                 -> {ok, integer()}|{error, _}.
 restart_all(#mgmepi{worker=W}, Abort, Initial, NoStart, Timeout) ->
     %%
     %% ~/src/mgmapi/mgmapi.cpp: ndb_mgm_restart4/8
@@ -273,7 +276,7 @@ restart_all(#mgmepi{worker=W}, Abort, Initial, NoStart, Timeout) ->
               [
                {<<"restart reply">>, null, mandatory},
                {<<"result">>, string, mandatory},
-               {<<"restarted">>, integer, optional}
+               {<<"restarted">>, integer, mandatory}
               ],
               Timeout) of
         {ok, List, []} ->

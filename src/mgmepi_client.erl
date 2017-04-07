@@ -34,18 +34,18 @@ start_link(Args, Options) ->
     gen_server:start_link(?MODULE, Args, Options).
 
 
--spec call(pid(), binary(), [param()], timeout()) ->
-                  {ok, [matched()], [parsed()]}|{error, _}.
+-spec call(pid(), binary(), [param()], timeout())
+          -> {ok, [matched()], [parsed()]}|{error, _}.
 call(Pid, Cmd, Params, Timeout) ->
     call(Pid, Cmd, [], Params, undefined, Timeout).
 
--spec call(pid(), binary(), [arg()], [param()], timeout()) ->
-                  {ok, [matched()], [parsed()]}|{error, _}.
+-spec call(pid(), binary(), [arg()], [param()], timeout())
+          -> {ok, [matched()], [parsed()]}|{error, _}.
 call(Pid, Cmd, Args, Params, Timeout) ->
     call(Pid, Cmd, Args, Params, undefined, Timeout).
 
--spec call(pid(), binary(), [arg()], [param()], pattern(), timeout()) ->
-                  {ok, [matched()], [parsed()]}|{error, _}.
+-spec call(pid(), binary(), [arg()], [param()], pattern(), timeout())
+          -> {ok, [matched()], [parsed()]}|{error, _}.
 call(Pid, Cmd, Args, Params, Pattern, Timeout) ->
     try gen_server:call(Pid, {send, to_packet(Cmd, Args), Pattern}, Timeout) of
         Binary ->

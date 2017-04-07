@@ -4,6 +4,7 @@
 
 %% -- private --
 -export([boolean_to_binary/1]).
+-export([checksum/1, checksum/3]).
 -export([fold/2]).
 -export([get_result/1, get_result/2]).
 -export([get_value/2]).
@@ -16,6 +17,15 @@
 -spec boolean_to_binary(boolean()) -> <<_:8>>.
 boolean_to_binary(true)  -> <<"1">>;
 boolean_to_binary(false) -> <<"0">>.
+
+
+-spec checksum([non_neg_integer()]) -> non_neg_integer().
+checksum(List) ->
+    lists:foldl(fun(E, A) -> A bxor E end, 0, List).
+
+-spec checksum(binary(), pos_integer(), pos_integer()) -> non_neg_integer().
+checksum(Binary, Size, Incr) ->
+    checksum(baseline_binary:decode_unsigned(Binary, 0, Size, big, Incr)).
 
 
 -spec fold([function()], [term()]) -> [term()].
@@ -83,10 +93,12 @@ parse(Binary, Params) ->
 
 -spec parse(binary(), [param()], binary()) -> {ok, [matched()], [parsed()]}.
 parse(Binary, Params, FieldPattern) ->
-    match(Params, baseline_binary:split(Binary, FieldPattern, <<?LS>>), []).
-
+    match(Params, split(Binary, FieldPattern, <<?LS>>), []).
 
 %% == internal ==
 
 binary_to_boolean(<<"1">>) -> true;
 binary_to_boolean(<<"0">>) -> false.
+
+split(Binary, FieldPattern, LinePattern) ->
+    [ binary:split(E, FieldPattern) || E <- binary:split(Binary, LinePattern, [global]) ].
