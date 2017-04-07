@@ -15,12 +15,17 @@ default: show_tables
 #
 $(VERBOSE).SILENT:
 
-restore: restore-1-1 restore-4-1
+restore: backup restore-1-1 restore-4-1
 
 restore-1-%:
 	$(MYSQL_HOME)/bin/ndb_restore $(call OPT,1,$*) --restore_meta
 restore-4-%:
 	$(MYSQL_HOME)/bin/ndb_restore $(call OPT,4,$*)
+
+backup:
+	tar -xzf backup.tar.xz
+clean:
+	rm -rf backup
 
 #
 show_tables:
@@ -29,6 +34,5 @@ show_tables:
 counters diskpagebuffer logbuffers logspaces nodes resources threadblocks threadstat transporters:
 	$(MYSQL_HOME)/bin/ndbinfo_select_all $@
 
-#
 desc index_stat select_count:
 	$(MYSQL_HOME)/bin/ndb_$@ city -d test

@@ -54,7 +54,13 @@ stop-%:
 sleep-%:
 	sleep $*
 
-clean: rm-data
+clean: rm-data world-clean
+
+restore: world-restore
+
+#
+world-%:
+	cd world && make $*
 
 #
 $(DATA)-%:

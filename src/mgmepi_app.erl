@@ -43,7 +43,7 @@ get_childspec({A, P}, Env)
         [
          baseline_app,
          {
-           {simple_one_for_one, 10, 10},
+           {simple_one_for_one, 1, 5},
            [
             {
               undefined,

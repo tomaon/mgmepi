@@ -56,12 +56,12 @@ end_per_group(GroupName, Config) ->
 get_connection_config_test(Config) ->
     7 = length(test(Config, get_connection_config,   [1])),
     4 = length(test(Config, get_connection_config,  [91])),
-    2 = length(test(Config, get_connection_config, [201])).
+    4 = length(test(Config, get_connection_config, [201])).
 
 debug_connection_config_test(Config) ->
     7 = length(test(Config, debug_connection_config,   [1])),
     4 = length(test(Config, debug_connection_config,  [91])),
-    2 = length(test(Config, debug_connection_config, [201])).
+    4 = length(test(Config, debug_connection_config, [201])).
 
 get_node_config_test(Config) ->
     1 = length(test(Config, get_node_config,   [1])),

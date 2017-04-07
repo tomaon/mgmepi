@@ -104,18 +104,18 @@ get_version(#mgmepi{worker=W}, Timeout)
     end.
 
 
--spec alloc_node_id(mgmepi(), name()) ->
-                           {ok, node_id()}|{error, _}.
+-spec alloc_node_id(mgmepi(), name())
+                   -> {ok, node_id()}|{error, _}.
 alloc_node_id(Mgmepi, Name) ->
     alloc_node_id(Mgmepi, Name, 0).
 
--spec alloc_node_id(mgmepi(), name(), 0|node_id()) ->
-                           {ok, node_id()}|{error, _}.
+-spec alloc_node_id(mgmepi(), name(), 0|node_id())
+                   -> {ok, node_id()}|{error, _}.
 alloc_node_id(#mgmepi{timeout=T}=M, Name, NodeId) ->
     alloc_node_id(M, Name, NodeId, T).
 
--spec alloc_node_id(mgmepi(), name(), 0|node_id(), timeout()) ->
-                           {ok, node_id()}|{error, _}.
+-spec alloc_node_id(mgmepi(), name(), 0|node_id(), timeout())
+                   -> {ok, node_id()}|{error, _}.
 alloc_node_id(#mgmepi{worker=W}, Name, NodeId, Timeout)
   when (NodeId =:= 0 orelse ?IS_NODE_ID(NodeId)),
        ?IS_NAME(Name), ?IS_TIMEOUT(Timeout) ->
@@ -190,7 +190,7 @@ cleanup(#mgmepi{sup=S, worker=W}=M)
   when S =/= undefined, W =/= undefined ->
     ok = supervisor:terminate_child(S, W),
     cleanup(M#mgmepi{sup = undefined, worker = undefined});
-cleanup(#mgmepi{}) ->
+cleanup(_) ->
     ok.
 
 setup(Sup, Worker) ->
