@@ -4,7 +4,7 @@
   mgmepi,
   [
    {description, "MySQL Cluster Management API (mgmapi) for Erlang"},
-   {vsn, "0.8.7"},
+   {vsn, "0.9.0"},
    {registered, [mgmepi_sup]},
    {included_applications, [baseline]},
    {applications, [kernel, stdlib]},
