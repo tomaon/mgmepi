@@ -131,7 +131,7 @@ alloc_node_id(#mgmepi{worker=W}, Name, NodeId, Timeout)
                {<<"user">>, <<"mysqld">>},
                {<<"password">>, <<"mysqld">>},
                {<<"public key">>, <<"a public key">>},
-               {<<"endian">>, atom_to_binary(baseline_app:endianness(), latin1)},
+               {<<"endian">>, atom_to_binary(baseline_app:endianness(W), latin1)},
                {<<"name">>, Name},
                {<<"log_event">>, boolean_to_binary(true)}
               ],
