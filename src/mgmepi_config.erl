@@ -184,8 +184,8 @@ unpack(Binary) ->
     unpack(Binary, byte_size(Binary)).
 
 unpack(Binary, Size) -> % 12 =< Size, 0 == Size rem 4
-    C = baseline_binary:decode_unsigned(Binary, Size - 4, 4, big),
-    case {binary_part(Binary, 0, 8), mgmepi_util:checksum(Binary, Size - 4, 4)} of
+    C = baseline_binary:decode_unsigned(Binary, Size - 4, 4, native),
+    case {binary_part(Binary, 0, 8), mgmepi_util:checksum(Binary, 0, Size - 4, 4, native)} of
         {<<"NDBCONFV">>, C}->
             unpack(Binary, 8, Size - 12, 0, [], [])
     end.

@@ -4,7 +4,7 @@
 
 %% -- private --
 -export([boolean_to_binary/1]).
--export([checksum/1, checksum/3]).
+-export([checksum/1, checksum/5]).
 -export([fold/2]).
 -export([get_result/1, get_result/2]).
 -export([get_value/2]).
@@ -23,9 +23,10 @@ boolean_to_binary(false) -> <<"0">>.
 checksum(List) ->
     lists:foldl(fun(E, A) -> A bxor E end, 0, List).
 
--spec checksum(binary(), pos_integer(), pos_integer()) -> non_neg_integer().
-checksum(Binary, Size, Incr) ->
-    checksum(baseline_binary:decode_unsigned(Binary, 0, Size, big, Incr)).
+-spec checksum(binary(), non_neg_integer(), non_neg_integer(), integer(), endianness())
+              -> non_neg_integer().
+checksum(Binary, Start, Size, Incr, Endianness) ->
+    checksum(baseline_binary:decode_unsigned(Binary, Start, Size, Incr, Endianness)).
 
 
 -spec fold([function()], [term()]) -> [term()].

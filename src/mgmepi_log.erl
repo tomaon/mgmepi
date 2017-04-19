@@ -155,7 +155,7 @@ set_loglevel(#mgmepi{worker=W}, NodeId, Category, Level, Timeout)
             {error, Reason}
     end.
 
-%% -- internal --
+%% == internal ==
 
 match_event_category(Category) ->
     get_value(Category, event_category()).
