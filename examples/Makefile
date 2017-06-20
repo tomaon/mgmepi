@@ -1,7 +1,5 @@
 #
-#MYSQL_HOME ?= /opt/mysql/debug/5.6.35-ndb-7.3.16
-#MYSQL_HOME ?= /opt/mysql/debug/5.6.35-ndb-7.4.14
- MYSQL_HOME ?= /opt/mysql/debug/5.7.17-ndb-7.5.5
+ MYSQL_HOME ?= /opt/mysql/release/5.7.18-ndb-7.5.6
 
  MGM  = $(MYSQL_HOME)/bin/ndb_mgm
  MGMD = $(MYSQL_HOME)/bin/ndb_mgmd

@@ -279,8 +279,8 @@
 -define(NDB_MGM_EVENT_CATEGORY_SCHEMA,       262).
 
 %% -- other --
--define(MYSQL_VERSION_ID, 329495). % 0x050717
--define(NDB_VERSION_ID,   460037). % 0x070505
+-define(MYSQL_VERSION_ID, 329490). % 0x050718
+-define(NDB_VERSION_ID,   460038). % 0x070506
 
 -define(IS_CONFIG(T), (is_list(T))).
 
